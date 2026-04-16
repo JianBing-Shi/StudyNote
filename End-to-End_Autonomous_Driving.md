@@ -107,6 +107,10 @@ VLA的优点
 * 舒适率：速度平滑性、转弯平滑性
 * 安全性：与环境障碍物的最小距离
 * 效率
+* S-CR：安全分数
+* S-Area：可行驶区域保持分数
+* S-PR：进度分数
+* S-Comfort：舒适度分数
 
 ## 大语言模型LLM
 **三大核心技术**
@@ -119,6 +123,13 @@ VLA的优点
 ### CLIP：Contrastive Language-Image Pre-training
 zero-shot
 ### LLaVA：Visual Instruction Tuning
+
+## PointNet
+PointNet是一个处理点云数据的神经网络架构，专门设计用于处理无序的点云数据。它通过对每个点进行独立的特征提取，并使用对称函数（如max pooling）来聚合这些特征，从而实现对整个点云的全局特征表示。PointNet在3D物体分类、分割和场景理解等任务中表现出色，成为点云处理领域的重要基石。
+
+点云数据是无序性的，只要位置不变，任意变换顺序，数据不改变；图像数据是有序性的，图像的像素变换位置，图像信息就变了。
+
+PointNet的核心是MLP + Max Pooling，MLP用于编码信息，Max Pooling用于忽略顺序。
 
 ## BEV感知
 BEV：Bird-Eye-View，鸟瞰视角/俯视视角。当前主流自动驾驶感知、规控技术都应用在该视角下
@@ -223,7 +234,7 @@ $ Q_{\pi}(s_{t}, a_{t}) = r(s_{t}, a_{t}) + \gamma \sum_{s_{t+1} \in S} p(s_{t+1
 * 仍具有现行架构的感知不准、信息损耗等问题
 * 适合新手入门
 
-### PLUTO
+### 港科大PLUTO:Pushing the Limits of Imitation Learning-based Planning  for Autonomous Driving
 AI模型在nuPlan首次击败基于规则的planner PDM（PDM：2023 nuPlan planning challenge冠军）
 
 此前AI方案的弱项
@@ -247,6 +258,190 @@ Query-based网络结构
 * 与数据增强配合使用，引入对比损失
 * 用以抑制模型学习short-cut
 
+#### 网络模型结构
+![PLUTO 网络模型结构](./Img/End-to-End_Autonomous_Driving/PLUTO.png)
+
+* $E_{A}$：动态物体编码器
+* $E_{O}$：静态物体编码器
+* $E_{P}$：地图元素编码器
+* $E_{AV}$: 自车状态编码器
+* $Logitudinal Query$：自车轨迹预测
+
+* $Polyline Encoder$：自车轨迹编码器
+* $Perdictions$：预测动态物体轨迹 
+* $Lateral$：横向规划
+* $Logitudinal$：纵向规划
+* $Trajectory$ & $Score$：轨迹规划 & 得分
+
+#### **Perception** 感知模块
+$E_{A}$： 动态物体编码器（FPN编码器）
+1. 当前动态物体状态 
+
+	$s_{i}^{t} = (p_{i}^{t}, \theta_{i}^{t}, v_{i}^{t}, b_{i}^{t}, \mathbb{I}_{i}^{t})$
+
+	* $p_{i}^{t}$：第i个动态物体在t时刻的位置坐标
+	* $\theta_{i}^{t}$：第i个动态物体在t时刻的朝向
+	* $v_{i}^{t}$：第i个动态物体在t时刻的速度
+	* $b_{i}^{t}$：第i个动态物体在t时刻的bbox信息
+	* $\mathbb{I}_{i}^{t}$：第i个动态物体在t时刻的可见状态
+
+2. 历史动态物体状态
+
+	$\hat{s}_{i}^{t} = (p_{i}^{t} - p_{i}^{t-1}, \theta_{i}^{t} - \theta_{i}^{t-1}, v_{i}^{t} - v_{i}^{t-1}, b_{i}^{t}, \mathbb{I}_{i}^{t})$
+
+$E_{O}$： 静态物体编码器（MLP编码器）
+1. 当前动态物体状态
+
+	$o_{i} = (p_{i}, \theta_{i}, b_{i})$
+
+	* $p_{i}$：第i个静态物体的位置坐标
+	* $\theta_{i}$：第i个静态物体的朝向
+	* $b_{i}$：第i个静态物体的bbox信息
+
+$E_{P}$：地图元素编码器（PointNet编码器）
+1. 当前地图元素状态
+
+	若干组polylines
+
+	$(p_{i} - p_{0}, p_{i} - p_{i-1}, p_{i} - p_{i}^{left}, p_{i} - p_{i}^{right})$
+
+	* $p_{0}$：自车起始点
+	* $p_{i}^{right}$：最左边的点
+
+$E_{AV}$: 自车状态编码器
+	
+当前时刻的位置、朝向、速度、加速度、转角
+
+不使用历史信息，防止ShortCut
+
+State dropout encoder，仅取消自车历史信息，模型还是会被自车运动状态误导，SDE可消除这种误导
+
+总特征**embedding** —— $E_{0} = concat(E_{A}, E_{O}, E_{P}, E_{AV}) + PE（全局位置编码） + E_{attr}（属性编码，agent类型、限速、交通灯状态）$
+
+#### **Planner** 规划模块
+轨迹规划
+  * 纵向规划：车速
+  * 横向规划：线型（直行/左变道/右变道/左转/右转）
+
+纵向：初始化一组可学习的Query
+
+横向：用传统路径规划方法，获得一组参考线，用PointNet编码
+
+在横向和纵向Query上做自注意力，希望跟输入编码的KV交互时，Query能综合分析所有横纵向情况，做出更合理的决策。
+
+如果将$N_{1}$个横向Query和$N_{2}$个纵向Query进行融合，所有的注意力计算需要$N_{1}^{2}*N_{2}^{2}$次。
+
+先对每个纵向Query，做横向注意力，$N_{2}$个纵向Query， 每个纵向Query需要$N_{1}^{2}$次注意力计算；
+再对每个横向Query，做纵向注意力，$N_{1}$个横向Query，每个横向Query需要$N_{2}^{2}$次注意力计算$；
+总计算量为$N_{1}^{2}*N_{2} + N_{1}*N_{2}^{2}$，相比于直接融合的$N_{1}^{2}*N_{2}^{2}$，大大降低了计算量。
+
+轨迹预测使用了两个MLP，一个为每个轨迹模态预测具体轨迹点，另一个预测每个模态的打分，又添加一个MLP在不借助参考线的情况下，直接预测轨迹。
+
+#### Loss设计
+1. 主任务Loss
+	* 轨迹损失：$\mathcal{L}_{reg} = L1_{smooth}(\hat{\pi} - \pi^{gt}) +  L1_{smooth}({\pi}^{free} - \pi^{gt})$
+	* 分类损失：$\mathcal{L}_{cls} = CE({\pi}_{0}, \pi_{0}^{*})$
+2. 模仿学习Loss
+	* $\mathcal{L}_{i} = \mathcal{L}_{reg} + \mathcal{L}_{cls}$
+3. Agent轨迹预测Loss（辅助任务）
+	* $P_{1:N_{A}} = MLP(E_{A}^{'})$
+	* $\mathcal{L}_{pred} = L1_{smooth}(P_{1:N_{A}} - P_{1:N_{A}}^{gt})$
+
+加入辅助任务的Loss，能让模型更好地理解环境，提升规划能力。纯模仿学习难以让模型学习到真实场景的驾驶约束。
+
+在训练数据集样本中，99%的数据样本是没有碰撞的，模型难以学习到碰撞的特征，数据集样本中的负样本是非常稀少的。
+
+因此，**PLUTO** 提出了ESDF（Euclidean Signed Distance Field），在ESDF描述了鸟瞰图下可行驶区域，每个点距离其最近不可行驶区域的欧式距离。
+
+4. 可行使区域辅助Loss
+	* $\mathcal{L}_{aux} = \frac{1}{T_{f}} \sum\limits_{i=1}^{T_f} \sum\limits_{i=1}^{N_c} \max(0, R_{c} + \epsilon - d_{i}^{t})$
+
+用n个圆覆盖住车身，获取每个圆的圆心的ESDF值，如果ESDF值 < 圆半径，即可能驶离了可行驶区域，给予惩罚
+
+5. 对比学习Loss
+	* $\mathcal{L}_{contrastive} = - \log \frac{\exp(sim(z, z^{+})/ \sigma)}{\exp(sim(z, z^{+})/ \sigma) + \exp(sim(z, z^{-})/ \sigma)}$
+
+* 最终Loss：
+	* $\mathcal{L} = \omega_{1}\mathcal{L}_{i} + \omega_{2}\mathcal{L}_{pred} + \omega_{3}\mathcal{L}_{aux}$ + $\omega_{4}\mathcal{L}_{contrastive}$
+
+后处理：模型推理出的轨迹有两个打分，第一个是模型自己给每个模态的打分；第二个是用LQR+自行车模型，对轨迹进行处理，处理后的轨迹根据完成度、舒服度、碰撞、交规等因素进行打分。两个打分做加权平均，最高者为最终轨迹
+#### 引用内容
+* IDM：Intelligent Driver Model，一种经典的基于规则的微观交通流模型
+* PDM-Closed：基于规则的planner，nuPlan planning challenge冠军，用IDM生成多个proposal，再用规则筛选
+* Urban Driver：PMLR2022，比较早期的模仿学习工作
+* PlanTF：ICRA2024，PLUTO作者自己的早期工作
+
+### CarPlanner:Consistent Auto-regressive Trajectory Planning for Large-scale Reinforcement Learning in Autonomous Driving（CVPR 2025）
+CarPlanner是一个基于强化学习的端到端自动驾驶规划模型，自回归的推理方式规划轨迹，朴素世界模型 + planner模型结合的方案。首篇在nuPlan超越模仿学习、规则方案的RL-based planner，且在闭环评测中表现优于模仿学习方案。
+
+* 自回归推理
+	* 没有自回归：忽略时序因果关系
+	* Mode可变自回归：轨迹稳定性差
+	* Mode不变自回归：本文方法
+
+#### 网络模型结构
+![CarPlanner 网络模型结构](./Img/End-to-End_Autonomous_Driving/CarPlanner.png)
+
+输入Agent（含自车）
+* 位置、朝向、速度、BBox、时间戳、类型
+* $N（个数） * H（时间窗） * D_{a}$
+* PointNet编码成 $N * D$ 
+
+地图
+* Polyline
+	* Polyline表示，每个polyline有$N_{p}$个边，每个边有左边界、中点、右边界三个点，共$3N_{p}$个点
+	* 每个点有$D_{m}$个特征：位置、朝向、类型、限速等
+	* $N_{m1}$个polyline组成的初始特征维度为 $N_{m1} * 3N_{p} * D_{m}$，经过PointNet编码成 $N_{m1} * D$
+* Polygon
+	* 路口、停止线、横道线等
+	* 类似的方式，经过PointNet编码成 $N_{m2 } * D$
+
+Query
+* 每个mode一条query
+* 一个mode：一种横向选择+一种速度选择
+* 横向、纵向兼顾
+	* 纵向query
+		* 一共$N_{lon}$种速度，$i / N_{lon}$ 为第 i 种的速度值
+		* 速度值重复D次构成初始queryt向量，得到 $N_{lon} * D$ 的初始query特征维度
+	* 横向query
+		* 用图搜索（传统方法）在map上搜索出 $N_{lat} * D$ 条可行路径
+	* 横纵query结合
+		* 先将两组query两两concat，得到 $N_{lon} * N_{lat} * 2D$ 条mode的初始query特征维度
+		* 再用MLP处理成 $N_{lon} * N_{lat} * D$ 的mode query特征维度
+
+Decoder
+* Agent、地图的特征作为KV，与Query进行注意力融合
+#### **(Planner)**预测模块
+Non-reactivate Transition Model（朴素世界模型）
+* 一次性预测其他agent所有未来时刻的轨迹，文中表示观察到其他agent的预测，自回归推理和一次性推理效果差异不大
+
+Mode Selector
+* 在decoder后接一个MLP + Softmax，预测每种mode的打分
+* Cross-Entropy Loss作为loss
+* 添加一个回归任务预测自车轨迹，L1 Loss作为side-task loss
+
+Trajectory Generator
+* IVM(Invariant-view module)：预测自车轨迹时，先对其为轴的agent和map信息做KNN采样，采样得到的信息转换到自车在当前时刻下的坐标系，输入前文所述的网络
+* 不同mode，IVM内容是不一同的，但维度一样，不影响并行计算
+* Policy head
+	* 预测自车动作
+  	* 用高斯分布对自车动作建模，预测的时高斯分布的参数
+  	* 训练时，动作用高斯采样得到
+  	* 推理时，动作为高斯分布的均值
+* Value head
+	* 预测价值 ~ PPO
+* 自回归推理
+	* 当前时刻 -> 得到IVM -> 推理下个时刻 -> 得到下个时刻的IVM -> 推理下下个时刻 -> …… -> 得到整个轨迹
+* Mode不变自回归
+	* 训练过程中，在选择mode时，winner takes all，用gt匹配上的mode作为固定condition
+
+其他设计
+* Rule-augmented Selector：用模型给mode的打分以及一些主观评估标准（抵达、舒适、安全……）的加权筛选最终轨迹
+* Reward function：碰撞or驶出可行驶区域为-1；否则为0
+* Mode dropout：随机mask路径，应为有的场景可能搜不到或不存在可行路径，要破除模型的路径依赖
+* 强化学习训练：PPO算法
+
+### Plan-R1
 ## 一段式端到端
 算法架构：**Data** -> **End2End(Planner)**
 

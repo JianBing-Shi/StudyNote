@@ -14,6 +14,7 @@
 * [端到端自动驾驶](./End-to-End_Autonomous_Driving.md)
 * [FPGA学习笔记](./FPGA.md)
 * [Docker学习笔记](./Docker.md)
+* [Vibe Coding学习笔记](./VibeCoding.md)
 
 ## Markdown语法
 * 标题：`# 一级标题`、`## 二级标题`、`### 三级标题`，依次类推
@@ -32,8 +33,8 @@
 * 分割线：使用三个或更多的短横线（---）
 * 行内代码：使用单个反引号（`）包裹代码片段
 
-## MCP 服务器
-在现代AI开发中，Model Context Protocol（MCP）允许通过外部进程扩展模型能力，而 [npx](https://nodejs.org/en/download)（Node.js 生态）和 [uvx](https://docs.astral.sh/uv/getting-started/installation/#github-releases)（Python 生态）则是两种即装即用的客户端工具，帮助你快速下载并运行 MCP 服务器或工具包，无需全局安装。
+## GitHub
+切换账号，需要在控制面板中删除`Windows凭据管理器`中的GitHub相关的凭据，然后重新登录GitHub账号即可。
 
 ## 开源协议
 * GPL:强制开源。强制代码开源和强制免费分享。你使用GPL协议的代码库，必须开源出去。
