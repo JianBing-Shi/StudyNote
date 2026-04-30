@@ -33,7 +33,7 @@ pacman -S --needed base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake 
 
 编译源文件为下载的OpenCV整个源文件，而添加的*OPENCV_EXTRA_MODULES_PATH*为`opencv_contrib\modules`。
 
-在编译完成后，需要在build文件夹中，使用cmd输入**mingw32-make**编译生成文件，最后使用**mingw32-make install**进行安装。
+在编译完成后，需要在build文件夹中，使用cmd输入 **mingw32-make -j$(nproc)** 编译生成文件，其中 **$(nproc)** 表示CPU的逻辑处理器数量，最后使用 **mingw32-make install** 进行安装。
 
 安装后的所有文件保存在`build\install`中，我们需要设置`\build\install\x64\mingw\bin`添加入环境变量中。
 
