@@ -1,4 +1,4 @@
-# C/C++ Primer Plus
+# C/C Primer Plus
 ## C/C++
 * 使用[Msys2](https://www.msys2.org/)，一个类似于Liunx内核的包管理系统。
 
