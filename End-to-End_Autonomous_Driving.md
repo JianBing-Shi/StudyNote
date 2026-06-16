@@ -387,7 +387,7 @@ Trajectory Generator
 * 强化学习训练：PPO算法
 
 ### Plan-R1
-## 一段式端到端
+## 一段式端到端 
 算法架构：**Data** -> **End2End(Planner)**
 
 实际：仍显式地带有感知模块，只是感知和Planner模块是一同训练/端到端训练，因此都视为端到端

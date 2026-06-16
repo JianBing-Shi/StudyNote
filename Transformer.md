@@ -12,7 +12,7 @@
 	3. 结合频次最高的两个非结束字符组成一个新字符，并重新统计所有字符频次（新字符会分走部分原高频字符的频次）
 	4. 重复2-3次直至字符数量达标or迭代轮次达标
 
-## 位置编码PositionalEncoding
+## PositionalEncoding 位置编码
 **PositionalEncoding**是*Transformer*模型的前置模块。它帮助*Transformer*模型具有排列不变性，将输入的词向量带有了相对或者绝对位置的信息。  
 
 位置编码需要满足三个核心约束：

@@ -8,5 +8,18 @@
 
 ## 自然语言生成NLG(Neural Language Generation)
 
+## 大语言模型LLM
+**三大核心技术**
+1. Transformer类架构（⭐）
+2. 海量数据预训练
+3. 微调精调技术（⭐）
+
+### Transformer
+[Transformer](./Transformer.md)
+### ViT：Viston Transformer
+### CLIP：Contrastive Language-Image Pre-training
+zero-shot
+### LLaVA：Visual Instruction Tuning
+
 ## 关于大模型微调技术
 ### 全量微调 VS LoRA微调

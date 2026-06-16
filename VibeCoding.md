@@ -31,3 +31,13 @@ Context越做越大，未来的大模型还需要RAG吗？
 * CodeX -> 轻量级开源方案，完全可控
 
 ### Agent Skill
+
+### Prompt Engineering 提示词工程
+教你怎么"跟 AI 说话"
+
+### Context Engineering 上下文工程
+教你怎么"给 AI 喂信息"
+
+### Harness Engineering 马具工程
+教你怎么"给 AI 造一条高速公路，配上护栏、限速牌和加油站"。  
+Harness Engineering 是一套围绕 AI Agent 构建的约束、反馈与控制系统，让 Agent 在人类设定的边界内自主、可靠、可持续地工作——它不优化模型本身，而是优化模型运行的"环境"。
