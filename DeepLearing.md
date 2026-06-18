@@ -157,12 +157,12 @@ RLHF是一种结合了强化学习和人类反馈的机器学习的方法，也�
 * Env：环境，`Agent`与`Env`进行交互产生反馈
 * Action Space：动作空间，`Agent`可选择的所有动作集合
 * Policy：策略函数，策略模型。输入状态$s$，输出动作$a$的概率分布，通常记为 $ \pi_{\theta}(a|s)$
-* Trajectory：强化学习更新轨迹，用 $\pmb{\tau}$ 表示。由 **状态-动作序列** 组成，$\pmb{\tau} = (S_{t}, A_{t}, S_{t+1}, A_{t+1}, S_{t+2}, A_{t+2}, ……)$
+* Trajectory：强化学习更新轨迹，用 $\pmb{\tau}$ 表示。由 **状态-动作序列** 组成，$\pmb{\tau} = (S_{t}, A_{t}, S_{t+1}, A_{t+1}, S_{t+2}, A_{t+2}, \dots)$
 * Reward：奖励，用$r$表示，`Agent`采用某个动作$a$从`Env`中得到的分值
 * Return：回报，从当前时刻直到`Trajectory`结束，Agent获得的Reward的总和，记为 $R(\tau)$。当`Trajectory`只有一组$(s,a)$时，`Return == Reward`
 * Target：`Agent`的目标，对所有的`Trajectory`最大化`Return`期望
 
-1. 目标：使`Target`：$E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)} = \sum\limits_{\tau} r(\tau) \pi_{\theta}(\tau)$ 最大化
+1. 目标：使`Target`：$E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)} = R(\tau) \sum\limits_{\tau} \pi_{\theta}(\tau)$ 最大化
 2. $E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)}$ 对 $\theta$ 求梯度 $\nabla E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)}$，则有 
 $$
 \theta^\star = \mathop{\arg\max}\limits_{\theta} E_{\tau \sim \pi_\theta(\tau)} \left[ \sum\limits_{t} r(s_t, a_t) \right]
@@ -174,16 +174,16 @@ $$
 4. 计算梯度
 $$
 \nabla \mathop{J}(\theta) 
-= \nabla\sum\limits_{\tau} r(\tau) \pi_{\theta}(\tau) 
-= \sum\limits_{\tau} r(\tau) \nabla\pi_{\theta}(\tau)
+= \nabla\sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau) 
+= \sum\limits_{\tau} R(\tau) \nabla\pi_{\theta}(\tau)
 $$
 5. 根据 $\frac{d\log(f(x))}{dx} = \frac{1}{f(x)}\frac{df(x)}{dx}$ 链式法则，插入恒等式 $\frac{\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)} = 1 $，得到
 $$
 \nabla \mathop{J}(\theta)
-= \sum\limits_{\tau} r(\tau) \nabla\pi_{\theta}(\tau) 
-= \sum\limits_{\tau} r(\tau) \frac{\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)} \nabla\pi_{\theta}(\tau) 
-= \sum\limits_{\tau} r(\tau) \pi_{\theta}(\tau) \frac{\nabla\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)}
-= \sum\limits_{\tau} r(\tau)\pi_{\theta}(\tau) \nabla\log\pi_{\theta}(\tau)
+= \sum\limits_{\tau} R(\tau) \nabla\pi_{\theta}(\tau) 
+= \sum\limits_{\tau} R(\tau) \frac{\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)} \nabla\pi_{\theta}(\tau) 
+= \sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau) \frac{\nabla\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)}
+= \sum\limits_{\tau} R(\tau)\pi_{\theta}(\tau) \nabla\log\pi_{\theta}(\tau)
 $$
 6. 根据大数定律（蒙特卡洛定律），令
 $$
@@ -193,12 +193,12 @@ $$
 $$  
 $$
 \nabla \mathop{J}(\theta)
-= \sum\limits_{\tau} r(\tau)\pi_{\theta}(\tau) \nabla\log\pi_{\theta}(\tau)
-= \sum\limits_{\tau} \pi_{\theta}(\tau)r(\tau) \nabla\log\pi_{\theta}(\tau) 
-\approx \frac{1}{N}\sum\limits_{i=1}^{N}r(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{n}) 
+= \sum\limits_{\tau} R(\tau)\pi_{\theta}(\tau) \nabla\log\pi_{\theta}(\tau)
+= \sum\limits_{\tau} \pi_{\theta}(\tau)R(\tau) \nabla\log\pi_{\theta}(\tau) 
+\approx \frac{1}{N}\sum\limits_{i=1}^{N}R(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{n}) 
 $$
 $$
-\frac{1}{N}\sum\limits_{i=1}^{N} r(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{n}) 
+\frac{1}{N}\sum\limits_{i=1}^{N} R(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{n}) 
 = \frac{1}{N}\sum\limits_{i=1}^{N} (\sum\limits_{t=1}^{T_{i}}r(s_{i, t}, a_{i, t})) (\sum\limits_{t=1}^{T_{i}}\nabla\log\pi_{\theta}(a_{i, t}|s_{i, t})) 
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}r(s_{i, t}, a_{i, t}) \nabla\log\pi_{\theta}(a_{i, t}|s_{i, t})
 = E_{\tau \sim \pi_\theta(\tau)} \left[ R(\tau) \nabla\log\pi_{\theta}(\tau) \right] 
@@ -206,7 +206,7 @@ $$
 7. 即
 $$
 \nabla E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)} 
-= \nabla\sum\limits_{\tau} r(\tau) \pi_{\theta}(\tau)
+= \nabla\sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau)
 \approx E_{\tau \sim \pi_\theta(\tau)} \left[ R(\tau) \nabla\log\pi_{\theta}(\tau) \right] 
 = \nabla \frac{1}{N}\sum\limits_{i}R(\tau^{i})
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}r(s_{i, t}, a_{i, t}) \nabla\log\pi_{\theta}(a_{i, t}|s_{i, t})
@@ -216,7 +216,7 @@ $$
 \frac{1}{N}\sum\limits_{i=1}^{N}R(\tau^{n})
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}R(\tau^{i}) \log\pi_{\theta}(a_{i, t}|s_{i, t})
 $$
-### On policy && Off policy
+#### On policy && Off policy
 * On policy
   * 根据policy采集数据，用数据更新policy，再用更新后的policy采集新数据，再用新数据更新policy
   * 更新policy和采集数据无法同时进行
@@ -228,13 +228,76 @@ $$
 
 其中，$R(s_{i, t}, a_{i, t})$ 作为状态价值估计，被用于采集数据；$\pi_{\theta}(a_{i, t}|s_{i, t})$ 作为策略估计，被用于数据更新。
 
-但是，在许多强化学习中，奖励项较多，惩罚项很少。如果每个动作都是奖励，很难找出最优选择。因此，使用 $ B(\tau^{i}) $ 作为基础反馈也称为平均奖励，可以理解为全班的平均分数。在实际应用中，$R(\tau^{i})$常常使用动作价值函数$Q_{\theta}(a|s)$；$B(\tau^{i})$常常使用状态价值函数$V_{\theta}(a|s)$。最终得到优势函数 $A_{\theta}(a|s) = Q_{\theta}(a|s) - V_{\theta}(a|s)$
+从数学角度（优化问题）来看，$\pi_{\theta}(a_{i, t}|s_{i, t})$ 作为逻辑函数的梯度方向，$R(s_{i, t}, a_{i, t})$ 作为逻辑函数的步长。由此，寻找最优点时确保了最优点方向确定，快速收敛。
+
+但是，在许多强化学习中，奖励项较多，惩罚项很少。如果每个动作都是奖励，很难找出最优选择。因此，引入 $ B(\tau^{i}) $ 作为基础反馈也称为平均奖励，可以理解为全班的平均分数。在实际应用中，$R(\tau^{i})$常常使用动作价值函数$Q_{\theta}(a|s)$；$B(\tau^{i})$常常使用状态价值函数$V_{\theta}(s)$。最终得到优势函数 $A_{\theta}(a|s) = Q_{\theta}(a|s) - V_{\theta}(s)$
 
 $$
 \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}R(\tau^{i}) \log\pi_{\theta}(a_{i, t}|s_{i, t}) 
 \rightarrow \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}(R(\tau^{i}) - B(\tau^{i})) \log\pi_{\theta}(a_{i, t}|s_{i, t})
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}(A(\tau^{i})) \log\pi_{\theta}(a_{i, t}|s_{i, t})
 $$
+
+由于，
+$$
+Q_{\theta}(s_{t}, a) 
+= r_{t} + \gamma * V_{\theta}(s_{t+1})
+$$
+得到，
+$$
+A_{\theta}(s_{t}, a) 
+= Q_{\theta}(s_{t}, a) - V_{\theta}(s_{t}) 
+= r_{t} + \gamma * V_{\theta}(s_{t+1}) - V_{\theta}(s_{t})
+$$
+$$
+V_{\theta}(s_{t+1}) 
+\approx r_{t+1} + \gamma * V_{\theta}(s_{t+2}) 
+$$
+最终得到关于 $ A_{\theta}(s_{t}, a) $ 的计算公式，下列式中上标表示对后多少步动作的采样，采样越多预测越准，方差越小，计算量越大，
+$$
+A_{\theta}^{1}(s_{t}, a) = r_{t} + \gamma * V_{\theta}(s_{t+1}) - V_{\theta}(s_{t}) 
+$$
+$$
+A_{\theta}^{2}(s_{t}, a) = r_{t} + \gamma * r_{t+1} + \gamma^{2} * V_{\theta}(s_{t+2})- V_{\theta}(s_{t}) 
+$$
+$$
+A_{\theta}^{3}(s_{t}, a) = r_{t} + \gamma * r_{t+1} + \gamma^{2} * r_{t+2} + \gamma^{3} * V_{\theta}(s_{t+3}) - V_{\theta}(s_{t}) 
+$$
+$$
+A_{\theta}^{T}(s_{t}, a) = r_{t} + \gamma * r_{t+1} + \gamma^{2} * r_{t+2} + \gamma^{3} * r_{t+3} + \dots + \gamma^{T} * r_{T} - V_{\theta}(s_{t}) 
+$$
+
+#### GAE (Generalized Advantage Estimation)
+令 $ A_{\theta}^{1}(s_{t}, a) = r_{t} + \gamma * V_{\theta}(s_{t+1}) - V_{\theta}(s_{t}) = \delta_{t}^{V} $  
+由此，
+$$
+A_{\theta}^{1}(s_{t}, a) = \delta_{t}^{V}
+$$
+$$
+A_{\theta}^{2}(s_{t}, a) = \delta_{t}^{V} + \gamma\delta_{t+1}^{V}
+$$
+$$
+A_{\theta}^{3}(s_{t}, a) = \delta_{t}^{V} + \gamma\delta_{t+1}^{V} + \gamma^{2}\delta_{t+2}^{V}
+$$
+
+计算可得，
+$$
+A_{\theta}^{GAE}(s_{t}, a) = (1-\lambda)(A_{\theta}^{1} + \lambda * A_{\theta}^{2} + \lambda^{2} * A_{\theta}^{3} + \dots)
+$$
+$$
+A_{\theta}^{GAE}(s_{t}, a) = (1-\lambda)(\delta_{t}^{V} + \lambda * (\delta_{t}^{V} + \gamma\delta_{t+1}^{V}) + \lambda^{2} * (\delta_{t}^{V} + \gamma\delta_{t+1}^{V} + \gamma^{2}\delta_{t+2}^{V}) + \dots)
+$$
+$$
+A_{\theta}^{GAE}(s_{t}, a) = (1-\lambda)(\delta_{t}^{V}(1+\lambda+\lambda^{2}+\dots) + \gamma\delta_{t+1}^{V}(\lambda+\lambda^{2}+\dots) + \dots)
+$$
+$$
+A_{\theta}^{GAE}(s_{t}, a) = (1-\lambda)(\delta_{t}^{V} \frac{1}{1-\lambda} + \gamma\delta_{t+1}^{V} \frac{\lambda}{1-\lambda} + \dots)
+$$
+$$
+A_{\theta}^{GAE}(s_{t}, a) = \sum\limits_{b=0}^{\infty}(\gamma\lambda)^{b}\delta_{t+b}^{V}
+$$
+#### 重要性采样
+重要性采样，是将重要的动作状态用于采样。例如，
 
 ### Actor-Critic
 * Actor：演员，采集数据
@@ -336,7 +399,7 @@ CNN非常强大，但被**归纳偏置**限制，即模型被迫对数据做出�
 5. 将去噪后的图像和更新后的step数再次输入模型，重复2~5步骤
 
 假定噪声符合高斯分布，由此得到递推公式 $ x_{t} = \sqrt{a_{t}} * x_{t-1} + \sqrt{1-a_{t}} * \epsilon_{t} $ ，其中 $ x_{t} $ 为当前图像，$ x_{t-1} $ 为上一张图像，$ \epsilon_{t} $ 为对上一张图像加入的噪声。  
-最终，通项公式为 $ x_{t} = \sqrt{\hat{a_{t}}} * x_{0} + \sqrt{1-\hat{a_{t}}} * \epsilon_{t} $ , 其中 $ \hat{a_{t}} = a_{1} * a_{2} * …… * a_{t}$
+最终，通项公式为 $ x_{t} = \sqrt{\hat{a_{t}}} * x_{0} + \sqrt{1-\hat{a_{t}}} * \epsilon_{t} $ , 其中 $ \hat{a_{t}} = a_{1} * a_{2} * \dots * a_{t}$
 
 引入时间编码嵌入，让扩散模型知道自己在生成过程的哪个阶段，从而做出正确的决策。为模型提供了上下文信息，明白了当前处于去噪过程的哪个阶段。
 
