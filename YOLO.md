@@ -1,4 +1,7 @@
 # YOLO
+## YOLO介绍
+YOLO 可抽象成 `Backbone-Neck-Head`：模型改进就是对结构与训练做可控调整。
+
 ## 图像标注label
 * 使用Yolo需要对数据集进行标注，常用的标注有`labelimg`、`labelme`、`label-studio`  
 推荐使用conda建立虚拟环境后，在安装对应的标注工具

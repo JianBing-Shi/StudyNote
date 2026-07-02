@@ -153,13 +153,13 @@ RLHF是一种结合了强化学习和人类反馈的机器学习的方法，也�
 3. 奖励建模：使用收集到的反馈数据来优化或调整奖励函数
 
 ### 近端策略优化 PPO：Proximal Policy Optimization
-* Agent：行动主体
+* Agent：行动主体，通过策略函数与环境交互
 * Env：环境，`Agent`与`Env`进行交互产生反馈
 * Action Space：动作空间，`Agent`可选择的所有动作集合
 * Policy：策略函数，策略模型。输入状态$s$，输出动作$a$的概率分布，通常记为 $ \pi_{\theta}(a|s)$
-* Trajectory：强化学习更新轨迹，用 $\pmb{\tau}$ 表示。由 **状态-动作序列** 组成，$\pmb{\tau} = (S_{t}, A_{t}, S_{t+1}, A_{t+1}, S_{t+2}, A_{t+2}, \dots)$
-* Reward：奖励，用$r$表示，`Agent`采用某个动作$a$从`Env`中得到的分值
-* Return：回报，从当前时刻直到`Trajectory`结束，Agent获得的Reward的总和，记为 $R(\tau)$。当`Trajectory`只有一组$(s,a)$时，`Return == Reward`
+* Trajectory：交互序列，用 $\pmb{\tau}$ 表示。由 **状态-动作序列** 组成，$\pmb{\tau} = (S_{t}, A_{t}, S_{t+1}, A_{t+1}, S_{t+2}, A_{t+2}, \dots)$
+* Reward：即时奖励，用$r$表示，`Agent`采用某个动作$a$从`Env`中得到的分值
+* Return：累积回报，从当前时刻直到`Trajectory`结束，Agent获得的Reward的总和，记为 $R(\tau)$。当`Trajectory`只有一组$(s,a)$时，`Return == Reward`
 * Target：`Agent`的目标，对所有的`Trajectory`最大化`Return`期望
 
 1. 目标：使`Target`：$E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)} = R(\tau) \sum\limits_{\tau} \pi_{\theta}(\tau)$ 最大化
@@ -217,10 +217,10 @@ $$
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}R(\tau^{i}) \log\pi_{\theta}(a_{i, t}|s_{i, t})
 $$
 #### On policy && Off policy
-* On policy
+* On policy 同步策略更新
   * 根据policy采集数据，用数据更新policy，再用更新后的policy采集新数据，再用新数据更新policy
   * 更新policy和采集数据无法同时进行
-* Off policy
+* Off policy 异步策略更新
   * 采集数据的policy和用数据更新的policy并不是同一套参数
 $$
 \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}R(\tau^{i}) \log\pi_{\theta}(a_{i, t}|s_{i, t}) 
