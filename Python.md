@@ -14,7 +14,7 @@
 
 # pdb模块
 pdb 是 Python 中用于调试代码的常用技巧，它的作用相当于在代码中设置一个断点（breakpoint）。  
-* 安装：pip install pdb
+> pip install pdb
 * 使用：**import pdb;pdb.set_trace()**  
 
 用途：暂停程序执行，控制权交给开发者；终端显示 **(PDB)** 提示符，表示已进入调试模式。  
@@ -32,14 +32,14 @@ pdb 是 Python 中用于调试代码的常用技巧，它的作用相当于在�
 
 # kornia模块
 Kornia 是一款基于 PyTorch 的可微分的计算机视觉库。  
-* 安装：pip install kornia  
+> pip install kornia  
 
 它由一组用于解决通用计算机视觉问题的操作模块和可微分模块组成。其核心使用 PyTorch 作为主要后端，以提高效率并利用反向模式自动微分来定义和计算复杂函数的梯度。  
 受现有开源库的启发，Kornia可以由包含各种可以嵌入神经网络的操作符组成，并可以训练模型来执行图像变换、对极几何、深度估计和低级图像处理，例如过滤和边缘检测。此外，整个库都可以直接对张量进行操作。
 
 # argparse模块
 在 Python 编程中，命令行参数解析是一个常见且重要的任务。argparse 模块为我们提供了一种简单而强大的方式来处理命令行参数。
-* 安装：pip install argparse
+> pip install argparse
 
 用途：自动生成帮助和使用信息，并且能够处理命令行参数的解析和错误检查。
 1. 创建解析器
@@ -64,7 +64,7 @@ if args.verbose:
 
 # tqdm模块
 tqdm 是 python 中用于显示进度条的模块，它常被用于显示训练、评估数据集的进度。
-* 安装：pip install tqdm
+> pip install tqdm
 * 使用：**from tqdm import tqdm**
 
 # pytorch模块
@@ -121,9 +121,9 @@ nn.functional（通常简写为 F），包含了许多可以直接作用于张�
 Pytorch Lightning 是一个基于PyTorch的高级深度学习框架，旨在将科研代码的灵活性与工程化最佳实习结合，通过标准化训练流程大幅减少模板代码。它的核心思想是，将**学术代码**（模型定义、前向/反向传播、优化器、验证等）和**工程代码**（for-loop、保存、tensorboard日志、训练策略等）解耦开来，使得代码更加简洁。  
 
 旧包名：pytorch_lightning  
-
 新包名：lightning
-* 安装：pip install lightning
+
+> pip install lightning
 * 使用：**import lightning as pl**
 1. 定义`LightningDataModule`加载数据模块 class datasets(pl.LightningDataModule):  
 	step1：初始化 def \_\_init\_\_(self):   
@@ -171,7 +171,7 @@ Pytorch Lightning 是一个基于PyTorch的高级深度学习框架，旨在将�
 
 # loguru模块
 Loguru 是一个用于 Python 的强大且易用的日志记录库，旨在简化日志记录过程，同时提供丰富的功能和灵活性。
-* 安装：pip install loguru
+> pip install loguru
 * 使用：**from loguru import logger**
 
 主要功能：
