@@ -33,7 +33,7 @@ catkin_ws :自定义的工作空间
 ## ROS节点通信
 ### 消息机制：
 * 话题通信：单向异步，一般用在是实时性要求不高的场景中，比如传感器广播其采集的数据。
-* 服务通信：双向同步，一般用在实时性要求比较高且使用频次底的场景下，比如获取全局静态地图。服务客户端向服务提供端发送请求，服务提供端在收到请求后立即进行处理并返回相应信息。高频次服务通信会导致代码阻塞造成严重后果。
+* 服务通信：双向同步，适合一次性任务或低频交互，比如获取全局静态地图。服务客户端向服务提供端发送请求，服务提供端在收到请求后立即进行处理并返回相应信息。高频次服务通信会导致代码阻塞造成严重后果。
 * 动作通信：双向异步，一般用于过程性的任务执行场景下，比如导航任务。动作客户端向动作服务端发送目标，动作服务端要达到目标需要一个过程，动作服务端在执行目标的过程中实时地反馈信息，并在目标完成后返回结果。
 #### 话题通信机制
 在ROS中，话题(Topic) 和 消息(Message) 是节点间通信的核心机制。
@@ -50,7 +50,7 @@ catkin_ws :自定义的工作空间
 ## launch启动多个ROS节点
 XML语法:`<标记名称 属性名1="属性值1" ...> 内容 </标记名称>`
 需要注意的是，如果你使用`rosrun`启动节点时，必须先使用`roscore`指令。
-而当使用`roslaunch`启动节点时，会自动使用`roscore`指令。
+使用 roslaunch 时，如果当前没有可用的 ROS Master，roslaunch 通常会自动启动`roscore`指令。
 
 ## ROS中的相机话题
 * /image_raw: 相机的原始数据
@@ -61,7 +61,7 @@ XML语法:`<标记名称 属性名1="属性值1" ...> 内容 </标记名称>`
 ## ROS中的激光雷达话题
 
 ## ROS指令
-* 环境设置
+### 环境设置
 ```bash
 # 启动ROS Master和参数服务器
 roscore
@@ -69,7 +69,8 @@ roscore
 # 设置ROS环境变量
 source /opt/ros/melodic/setup.bash
 ```
-* 包管理
+
+### 包管理
 ```bash
 # 查找指定包的路径
 rospack find <package_name>	# 包名package_name
@@ -86,13 +87,13 @@ roscd <package_name>
 # 编译当前工作空间中的所有包
 catkin_make
 
-# 编译并安装当前工作空间中的所有包
+# 编译并执行工作空间的安装目标
 catkin_make install
 ```
 
-* 节点管理
+### 节点管理
 ```bash
-# 要把文件加入环境变量中才能在终端中启动节点#include <
+# 需要先加载工作空间环境，才能在终端中运行其中的节点
 source <workspace_name>/devel/setup.bash
 
 # 启动节点
@@ -111,7 +112,7 @@ rosnode kill <node_name>
 roslaunch <package_name> <launch_file>
 ```
 
-* 话题管理
+### 话题管理
 ```bash
 # 列出当前活跃的话题
 rostopic list
@@ -130,7 +131,7 @@ rostopic hz <topic_name>
 rostopic bw <topic_name>
 ```
 
-* 调试工具
+### 调试工具
 ```bash
 # 启动rqt_graph工具，可视化节点和话题的连接关系
 rqt_graph
@@ -150,18 +151,19 @@ rosrun rqt_tf_tree rqt_tf_tree
 # 启动tf2_tools工具，生成tf树PDF文件
 rosrun tf2_tools view_frames.py
 ```
+
 ## ROS消息包
 ### 标准消息包std_msgs
 |基础类型|数组类型|结构体类型|
 | --- | --- | --- |
-|`bool`|/|`colorRGBA`|
-|`byte`|`byteMultiArray`|`duration`|
-|`char`|/|`time`|
-|`string`|/|`header`|
+|`bool`|/|`ColorRGBA`|
+|`byte`|`ByteMultiArray`|`Duration`|
+|`char`|/|`Time`|
+|`string`|/|`Header`|
 |`int8`,`int16`,`int32`,`int64`|`int8MultiArray`,`int16MultiArray`,`int32MultiArray`,`int64MultiArray`|`MultiArrayDimension`|
 |`uint8`,`uint16`,`uint32`,`uint64`|`uint8MultiArray`,`uint16MultiArray`,`uint32MultiArray`,`uint64MultiArray`|`MultiArrayLayout`|
 |`float32`,`float64`|`float32MultiArray`,`float64MultiArray`|/|
-|`empty`|/|/|
+|`Empty`|/|/|
 ### 几何消息包geometry_msgs
 * 加速度：`Accel`,`AccelStamped`,`AccelWithCovariance`,`AccelWithCovarianceStamped`
 * 惯量：`Inertia`,`InertiaStamped`
@@ -170,16 +172,16 @@ rosrun tf2_tools view_frames.py
 * 空间位置：`Pose`,`Pose2D`,`PoseArray`,`PoseStamped`,`PoseWithCovariance`,`PoseWithCovarianceStamped`
 * 四元数：`Quaternion`,`QuaternionStamped`
 * 空间变换：`Transform`,`TransformStamped`
-* 空降方向：`Twist`,`TwistStamped`,`TwistWithCovariance`,`TwistWithCovarianceStamped`
+* 空间方向：`Twist`,`TwistStamped`,`TwistWithCovariance`,`TwistWithCovarianceStamped`
 * 三维矢量：`Vector3`,`Vector3Stamped`
-* 扭矩：`Wrench`,`WrenchStamped`
+* 力和扭矩：`Wrench`,`WrenchStamped`
 ### 自我诊断消息包diagnostic_msgs
 ### 传感器消息包sensor_msgs
 * 激光雷达：`LaserScan`,`PointCloud2`,`LaserEcho`,`MultiEchoLaserScan`
 * 单点测距：`Range`
 * 惯性测量：`Imu`,`MagneticField`
-* 彩色相机：`CameraInfo`,`Image`,`CompressedImage`,`RegionOflnterest`
-* 立体相机：`CameraInfo`,`Image`,`ChannelFloat32`,`PointCloud`,`PointCloud2`,`PointField`
+* 彩色相机：`CameraInfo`,`Image`,`CompressedImage`,`RegionOfInterest`
+* 立体相机：`CameraInfo`,`Image`,`ChannelFloat32`,`PointCloud`,`PointCloud2`,`PointField`,`DisparityImage`
 * 温度测量：`Temperature`
 * 湿度测量：`RelativeHumidity`
 * 照度测量：`Illuminance`

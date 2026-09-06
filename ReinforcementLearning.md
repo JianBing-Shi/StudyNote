@@ -15,8 +15,8 @@
 
 通常情况下， 在训练初期重探索；在训练后期重开采。
 
-## 马尔科夫链决策过程
-强化学习问题，Agent在环境中做动作的过程，通常被建模为 **马尔科夫链决策过程** 
+## 马尔科夫决策过程
+强化学习问题，Agent在环境中做动作的过程，通常被建模为 **马尔科夫决策过程** 
 
 * 马尔科夫链特性是 **每个动作只与上个状态有关，每个状态只与上个动作有关，与之前的历史无关**。
 
@@ -42,11 +42,11 @@ $ \pi(a|s) = P(A=a|S=s) $
 $ p(s_{t+1}|s_{t}, a_{t}) = P(S_{t+1}=s_{t+1}|S=s_{t}, A=a_{t}) $
 
 ## 状态价值函数
-状态价值函数，已知策略函数$ \pi $、状态$ s_{t} $，描述该状态所获的**奖励**期望  
+状态价值函数，已知策略函数$ \pi $、状态$ s_{t} $，描述当前状态所获的**奖励**期望  
 $ V_{\pi}(s_{t}) = \sum_{a_{t} \in A} \pi(a_{t}|s_{t})Q_{\pi}(s_{t}, a_{t}) $
 
 ## 动作价值函数
-动作价值函数，已知策略函数$ \pi $、状态$ s_{t} $、采取的动作$ a_{t} $，描述该动作所获的**奖励**期望  
+动作价值函数，已知策略函数$ \pi $、状态$ s_{t} $、采取的动作$ a_{t} $，描述当前动作所获的**奖励**期望  
 $ Q_{\pi}(s_{t}, a_{t}) = r(s_{t}, a_{t}) + \gamma \sum_{s_{t+1} \in S} p(s_{t+1}|s_{t}, a_{t}) \sum_{a_{t+1} \in A} \pi(a_{t+1}|s_{t+1})Q_{\pi}(s_{t+1}, a_{t+1}) $
 
 ## 强化学习的流派
@@ -60,9 +60,10 @@ RLHF是一种结合了强化学习和人类反馈的机器学习的方法，也�
 `RLHF`是建立在强化学习RL的基础之上，但基础的RL在执行复杂任务时很难定义一个明确、全面的奖励函数。此时，可以通过引入人类反馈辅助定义奖励函数。
 
 在RLHF中，训练过程通常涉及以下几个步骤：  
-1. 初始阶段：使用监督学习的方法，根据人类提供的初始数据集进行训练
+1. 初始阶段：使用监督微调（SFT）的方法，根据人类提供的初始数据集进行训练
 2. 在线学习：Agent在实际环境中执行任务，同时收集人类的反馈
 3. 奖励建模：使用收集到的反馈数据来优化或调整奖励函数
+4. 优化策略：使用 PPO 等算法优化策略，并加入参考模型 KL 惩罚。
 
 ## 近端策略优化 PPO：Proximal Policy Optimization
 * Agent：行动主体，通过策略函数与环境交互
@@ -82,14 +83,15 @@ $$
 $$
 \mathop{J}(\theta) 
 = E_{\tau \sim \pi_\theta(\tau)} \left[ \sum\limits_{t} r(s_t, a_t) \right] 
+= \sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau)
 $$
-4. 计算梯度
+3. 计算梯度
 $$
 \nabla \mathop{J}(\theta) 
 = \nabla\sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau) 
 = \sum\limits_{\tau} R(\tau) \nabla\pi_{\theta}(\tau)
 $$
-5. 根据 $\frac{d\log(f(x))}{dx} = \frac{1}{f(x)}\frac{df(x)}{dx}$ 链式法则，插入恒等式 $\frac{\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)} = 1 $，得到
+4. 根据 $\frac{d\log(f(x))}{dx} = \frac{1}{f(x)}\frac{df(x)}{dx}$ 链式法则，插入恒等式 $\frac{\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)} = 1 $，得到
 $$
 \nabla \mathop{J}(\theta)
 = \sum\limits_{\tau} R(\tau) \nabla\pi_{\theta}(\tau) 
@@ -97,7 +99,7 @@ $$
 = \sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau) \frac{\nabla\pi_{\theta}(\tau)}{\pi_{\theta}(\tau)}
 = \sum\limits_{\tau} R(\tau)\pi_{\theta}(\tau) \nabla\log\pi_{\theta}(\tau)
 $$
-6. 根据大数定律（蒙特卡洛定律），令
+5. 根据大数定律（蒙特卡洛定律），令
 $$
 \mathop{J}(\theta) 
 = E_{\tau \sim \pi_\theta(\tau)} \left[ \sum\limits_{t} r(s_t, a_t) \right] 
@@ -107,15 +109,15 @@ $$
 \nabla \mathop{J}(\theta)
 = \sum\limits_{\tau} R(\tau)\pi_{\theta}(\tau) \nabla\log\pi_{\theta}(\tau)
 = \sum\limits_{\tau} \pi_{\theta}(\tau)R(\tau) \nabla\log\pi_{\theta}(\tau) 
-\approx \frac{1}{N}\sum\limits_{i=1}^{N}R(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{n}) 
+\approx \frac{1}{N}\sum\limits_{i=1}^{N}R(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{i}) 
 $$
 $$
-\frac{1}{N}\sum\limits_{i=1}^{N} R(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{n}) 
+\frac{1}{N}\sum\limits_{i=1}^{N} R(\tau^{i}) \nabla\log\pi_{\theta}(\tau^{i}) 
 = \frac{1}{N}\sum\limits_{i=1}^{N} (\sum\limits_{t=1}^{T_{i}}r(s_{i, t}, a_{i, t})) (\sum\limits_{t=1}^{T_{i}}\nabla\log\pi_{\theta}(a_{i, t}|s_{i, t})) 
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}r(s_{i, t}, a_{i, t}) \nabla\log\pi_{\theta}(a_{i, t}|s_{i, t})
 = E_{\tau \sim \pi_\theta(\tau)} \left[ R(\tau) \nabla\log\pi_{\theta}(\tau) \right] 
 $$
-7. 即
+6. 即
 $$
 \nabla E(R(\tau))_{\tau \sim \pi_{\theta}(\tau)} 
 = \nabla\sum\limits_{\tau} R(\tau) \pi_{\theta}(\tau)
@@ -123,9 +125,9 @@ $$
 = \nabla \frac{1}{N}\sum\limits_{i}R(\tau^{i})
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}r(s_{i, t}, a_{i, t}) \nabla\log\pi_{\theta}(a_{i, t}|s_{i, t})
 $$
-8. 对两边同时积分，得到
+7. 对两边同时积分，得到
 $$
-\frac{1}{N}\sum\limits_{i=1}^{N}R(\tau^{n})
+\frac{1}{N}\sum\limits_{i=1}^{N}R(\tau^{i})
 = \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}R(\tau^{i}) \log\pi_{\theta}(a_{i, t}|s_{i, t})
 $$
 ### On policy && Off policy
@@ -140,7 +142,7 @@ $$
 
 其中，$R(s_{i, t}, a_{i, t})$ 作为状态价值估计，被用于采集数据；$\pi_{\theta}(a_{i, t}|s_{i, t})$ 作为策略估计，被用于数据更新。
 
-从数学角度（优化问题）来看，$\pi_{\theta}(a_{i, t}|s_{i, t})$ 作为逻辑函数的梯度方向，$R(s_{i, t}, a_{i, t})$ 作为逻辑函数的步长。由此，寻找最优点时确保了最优点方向确定，快速收敛。
+从数学角度（优化问题）来看，$\pi_{\theta}(a_{i, t}|s_{i, t})$ 作为逻辑函数的梯度方向，$R(s_{i, t}, a_{i, t}) = R(\tau^{i})$ 作为逻辑函数的步长。由此，寻找最优点时确保了最优点方向确定，快速收敛。
 
 但是，在许多强化学习中，奖励项较多，惩罚项很少。如果每个动作都是奖励，很难找出最优选择。因此，引入 $ B(\tau^{i}) $ 作为基础反馈也称为平均奖励，可以理解为全班的平均分数。在实际应用中，$ R(\tau^{i}) $ 常常使用动作价值函数 $ Q_{\theta}(a|s) $ ；$ B(\tau^{i})$ 常常使用状态价值函数 $ V_{\theta}(s) $ 。最终得到优势函数 $ A_{\theta}(a|s) = Q_{\theta}(a|s) - V_{\theta}(s) $
 
@@ -165,7 +167,7 @@ $$
 V_{\theta}(s_{t+1}) 
 \approx r_{t+1} + \gamma * V_{\theta}(s_{t+2}) 
 $$
-最终得到关于 $ A_{\theta}(s_{t}, a) $ 的计算公式，下列式中上标表示对后多少步动作的采样，采样越多预测越准，方差越小，计算量越大，
+最终得到关于 $ A_{\theta}(s_{t}, a) $ 的计算公式，下列式中上标表示对后多少步动作的采样，使用更长的多步回报，偏差通常降低，但方差增大；使用较短的 TD 估计，方差较低，但偏差可能较大。
 $$
 A_{\theta}^{1}(s_{t}, a) 
 = r_{t} + \gamma * V_{\theta}(s_{t+1}) - V_{\theta}(s_{t}) 
@@ -179,8 +181,9 @@ A_{\theta}^{3}(s_{t}, a)
 = r_{t} + \gamma * r_{t+1} + \gamma^{2} * r_{t+2} + \gamma^{3} * V_{\theta}(s_{t+3}) - V_{\theta}(s_{t}) 
 $$
 $$
-A_{\theta}^{T}(s_{t}, a) 
-= r_{t} + \gamma * r_{t+1} + \gamma^{2} * r_{t+2} + \gamma^{3} * r_{t+3} + \dots + \gamma^{T} * r_{T} - V_{\theta}(s_{t}) 
+A_{\theta}^{N}(s_{t}, a) 
+= r_{t} + \gamma * r_{t+1} + \gamma^{2} * r_{t+2} + \gamma^{3} * r_{t+3} + \dots + \gamma^{n} * r_{n} - V_{\theta}(s_{t}) 
+= \sum_{k=0}^{n-1}\gamma^{k} * r_{t+k} + \gamma^{n} * V(s_{t+n}) - V(s_{t})
 $$
 
 ### GAE (Generalized Advantage Estimation)
@@ -222,11 +225,11 @@ A_{\theta}^{GAE}(s_{t}, a)
 $$
 
 ### 重要性采样
-重要性采样，是将重要的动作状态用于采样。
+重要性采样，是将重要的动作状态用于采样。从分布 $q(x)$ 采样，再通过权重 $\frac{p(x)}{q(x)}$ 估计分布 $p(x)$ 下的期望。
 
 1. 构建一个概率分布 $q(x)$
 2. 基于分布 $q(x)$ 对$x$采样 
-3. 由**公式**，用 $f(x)$，$p(x)$，$q(x)$ 计算出均值
+3. 由**公式**，用 $f(x)$，$p(x)$，$q(x)$ 计算出期望均值
 4. 该均值 $ E(f(x))_{x \sim p(x)} $ 就是对期望的估计
 $$
 E(f(x))_{x \sim p(x)} 
@@ -243,7 +246,7 @@ $ p(x):P_{\theta}(a_{n}^{t}|s_{n}^{t}) $
 
 $ q(x):P_{\theta^{\prime}}(a_{n}^{t}|s_{n}^{t})$
 
-### PPO：Off-Policy训练
+### PPO：On-Policy训练
 $$
 \frac{1}{N}\sum\limits_{n=1}^{N} \sum\limits_{t=1}^{T_{n}}A_{\theta}^{GAE}(s_{n}^{t}, a_{n}^{t}) \nabla\log\pi_{\theta}(a_{n}^{t}|s_{n}^{t})
 = \frac{1}{N}\sum\limits_{n=1}^{N} \sum\limits_{t=1}^{T_{n}}A_{\theta^{\prime}}^{GAE}(s_{n}^{t}, a_{n}^{t}) \frac{P_{\theta}(a_{n}^{t}|s_{n}^{t})}{P_{\theta^{\prime}}(a_{n}^{t}|s_{n}^{t})} \nabla\log\pi_{\theta}(a_{n}^{t}|s_{n}^{t})

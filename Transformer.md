@@ -13,7 +13,7 @@
 	4. 重复2-3次直至字符数量达标or迭代轮次达标
 
 ## PositionalEncoding 位置编码
-**PositionalEncoding**是*Transformer*模型的前置模块。它帮助*Transformer*模型具有置换等变性，将输入的词向量带有了相对或者绝对位置的信息。  
+**PositionalEncoding**是 *Transformer* 模型的前置模块。位置编码向 token 表示中注入绝对或相对位置信息，使 *Transformer* 能够感知序列顺序
 
 位置编码需要满足三个核心约束：
 1. 唯一位置标识：每个位置有唯一的编码向量
@@ -55,8 +55,17 @@ Self-Attention是Attention的一种特殊形式，核心是“查询、键、值
 ### Decoder中的Masked Self-Attention
 Masked Self-Attention 是 Self-Attention 的一种特殊形式，核心仍然是“查询、键、值来自同一输入”。不同之处在于，Decoder 会使用 causal mask（因果掩码），限制当前位置只能关注自己以及之前的位置，不能看到未来位置的信息。
 ### Decoder中的Cross-Attention
-Cross-Attention是Attention的一种特殊形式，核心是“查询、键、值来自不同输入”，即模型对自身输入序列内部的元素计算相关性。其中，查询来自某一输入，键、值来自另一个输入。
+Cross-Attention是Attention的一种特殊形式，核心是“查询、键、值来自不同输入”，其中查询来自某一输入，键、值来自另一个输入。Query 来自 Decoder 当前隐状态，Key 和 Value 来自 Encoder 输出。Decoder 的每个位置可以根据自身状态关注输入序列中相关的位置。
 
+$$
+\text{输出}
+=
+\text{Attention}\left(
+\underbrace{\text{当前任务的 Query}}_{\text{我现在想知道什么}},
+\underbrace{\text{可匹配的 Key}}_{\text{哪里可能有相关信息}},
+\underbrace{\text{具体 Value}}_{\text{相关信息是什么}}
+\right)
+$$
 
 ## 总结
 * 输入是个矩阵

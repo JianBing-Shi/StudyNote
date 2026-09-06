@@ -7,7 +7,7 @@ LLM（Large Language Model, 大语言模型）
 ## Token 词元
 大模型处理文本的基本单元，即为Token词元。
 
-在实际的Vibe Coding时，会出现以下的Token：
+在实际使用Vibe Coding时，会出现以下的Token：
 * Input Tokens：输入词元
 * Cached Tokens：命中缓存词元
 * Uncached Tokens：未命中缓存词元
@@ -19,12 +19,30 @@ LLM（Large Language Model, 大语言模型）
 * 低于50%：通常意味着上下文变化太大，或者线程已经变得很长，可以考虑新建会话。
 
 ## Context 上下文
-大模型每次处理任务的信息总和大小，也是大模型的临时记忆体。
+大模型每次处理任务的信息总和大小，也是大模型的临时记忆体。模型在一次请求中可见的输入信息集合，包括系统指令、用户消息、历史对话、工具结果、代码片段和其他上下文，其大小受模型上下文窗口限制。
 
 ## RAG 检索增强生成
 
 ### Context 上下文 && RAG 检索增强生成
 Context越做越大，未来的大模型还需要RAG吗？
+Context 变大不会让 RAG 消失，而是会改变 RAG 的使用方式。
+Context Window 解决的是“这一次最多能给模型多少信息”；RAG 解决的是“面对海量信息时，应该选哪些信息给模型”。
+两者关注点不同：
+- 上下文窗口大：可以一次放入更多材料，适合短期、范围明确的任务。
+- RAG：从数据库、知识库或文件系统中检索相关内容，适合信息量巨大、持续更新或需要精准引用的场景。
+即使模型支持百万 Token，把整个知识库都塞进去仍然会遇到几个问题：
+1. 成本和延迟增加：输入越长，处理和计费通常越高。
+2. 信息噪声变多：无关内容可能干扰模型，出现“上下文迷失”。
+3. 数据经常变化：产品文档、库存、法规、项目代码等不能只依赖模型训练数据。
+4. 数据规模仍可能超出窗口：企业知识库、代码仓库、历史记录通常远大于百万 Token。
+5. 权限和隐私更难控制：RAG 可以按用户权限检索，而不是把全部资料暴露给模型。
+6. 可追溯性要求：RAG 可以返回来源、页码或文档片段，便于核验。
+未来更可能是“长上下文 + 智能检索”的组合：
+- 先用 RAG 筛选相关资料；
+- 再把关键资料放入较长 Context；
+- 模型根据任务需要继续检索或调用工具。
+因此，RAG 不会因为 Context 变大而过时，但简单的“向量搜索几段文本”可能会升级为更复杂的检索系统，例如混合检索、重排序、查询改写、知识图谱和 Agent 动态检索。
+
 
 ## Prompt 提示词
 现在AI智能体设计了 `Plan Mode`，其意图就是让模型在执行任务之前，获取更多的提示词与用户交流，使得模型能更加准确、精确地完成用户的任务需求，不再盲目地在少量提示词下去做偏离用户的任务需求的行为。
@@ -32,17 +50,16 @@ Context越做越大，未来的大模型还需要RAG吗？
 ## Tool
 
 ## MCP 服务器
-在现代AI开发中，Model Context Protocol（MCP）允许通过外部进程扩展模型能力，而 [npx](https://nodejs.org/en/download)（Node.js 生态）和 [uvx](https://docs.astral.sh/uv/getting-started/installation/#github-releases)（Python 生态）则是两种即装即用的客户端工具，帮助你快速下载并运行 MCP 服务器或工具包，无需全局安装。
+在现代AI开发中，Model Context Protocol（MCP）允许通过外部进程扩展模型能力，而 [npx](https://nodejs.org/en/download)（Node.js 生态）和 [uvx](https://docs.astral.sh/uv/getting-started/installation/#github-releases)（Python 生态）则是两种即装即用的包运行器/启动器，帮助你快速下载并运行 MCP 服务器或工具包，无需全局安装。
 
 ## Agent 智能体
 Agent的本质是LLM和人类的**翻译官**，这是因为人类的自然语言很模糊和LLM需要的输入非常精准之间的矛盾。所以，Agent在输入端接受人类最朴素、最随意的自然语言，Agent平台在将人类的简单意图进行包装、拼接、翻译成大模型听得懂的高级结构化语言，在输出端大模型吐出标准的暗号，Agent再次将其翻译成人类看得懂的精美UI卡片。
 
-现在的Agent智能体，主要有 *Claude Code* 、 *Copilot* 、 *Gemini* 、*CodeX*。
+现在的Agent智能体，主要有 *Claude Code* 、 *Copilot* 、 *Gemini* 、*Codex*。
 * Claude Code -> 深度代码理解
 * Copilot -> GitHub生态深度绑定，企业级支持
 * Gemini -> 多模态 + 百万Token上下文
-* CodeX -> 轻量级开源方案，完全可控
-Agent
+* Codex -> 轻量级开源方案，完全可控
 
 ### Agent Skill 技能
 Agent Skill（智能体技能）指的是赋予 Agent 执行特定任务、扩展其原生能力的可复用工具、函数、代码段或工作流。

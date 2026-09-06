@@ -115,7 +115,7 @@ VLA的优点
 ## PointNet
 PointNet是一个处理点云数据的神经网络架构，专门设计用于处理无序的点云数据。它通过对每个点进行独立的特征提取，并使用对称函数（如max pooling）来聚合这些特征，从而实现对整个点云的全局特征表示。PointNet在3D物体分类、分割和场景理解等任务中表现出色，成为点云处理领域的重要基石。
 
-点云数据是无序性的，只要位置不变，任意变换顺序，数据不改变；图像数据是有序性的，图像的像素变换位置，图像信息就变了。
+点云数据是无序性的，只要位置不变，任意变换顺序，数据不改变；图像数据是有序性的，图像像素具有规则网格结构和空间邻接关系，图像的像素变换位置，图像信息就变了。
 
 PointNet的核心是MLP + Max Pooling，MLP用于编码信息，Max Pooling用于忽略顺序。
 
@@ -133,7 +133,7 @@ PV->BEV：在图片上感知，得到目标坐标点，再经坐标变换，投�
 
   每个传感器在车上的安装位置是固定的，相对位置可以用一个旋转+一个平移来表达
 
-  所有坐标变换都能写成 **\[下一个坐标\] = \[上一个坐标\] x \[变换矩阵\]** 来表达  
+  所有坐标变换都能写成 **$P_{B} = T_{B \leftarrow A} P_{A}$** 来表达  
 
   变换矩阵设计的所有参数统称为标定参数
   * 内参矩阵：传感器内部的坐标变换参数，如焦距、像素高宽等
@@ -154,7 +154,7 @@ BEVFormer，乃至端到端算法的里程碑
 * 多camera输入和特征提取：使用backbone模型（VGG、ResNet、ViT）得到图像特征
 
 ##### Temporal Self-Attention(时间自注意力)
-> Temporal Self-Attention Query/Key/Value:	当前时刻 BEV feature query 和 自车运动对齐的 历史 BEV 特征
+> Temporal Self-Attention Query/Key/Value:	当前帧的 BEV 表示查询历史帧中与当前位置对应的特征
 
 * 上一刻的BEV特征 $ B_{t-1} $ ，先根据自车移动向量，对齐到当前时刻 $ B_{t-1}^{'} $ 
 * 当前时刻的BEV Query，自己与自己做deformable self-attention
@@ -163,12 +163,12 @@ BEVFormer，乃至端到端算法的里程碑
 ##### Spatial Cross-Attention(空间交叉注意力)
 从每个相机的图像特征中提取**BEV特征**，做Cross-Attention
 > Spatial Cross-Attention Query:		当前时刻 BEV feature query
-> Spatial Cross-Attention Key/Value:	当前时刻多视角图像特征的位置特征 和 BEV feature 特征内容  
+> Spatial Cross-Attention Key/Value:	当前时刻多视角图像特征 和 BEV feature 特征内容  
 
 * BEV视角下，将自车前后左右一定长宽范围内的2D空间预设分辨率，划分成2D栅格，栅格总数记为 *M* x *N*
 * 每个栅栅格(x, y)，预设一组固定的高度 z1, z2, ……
 * 每个三位位置点（x, y, z），通过坐标变换，映射到相机上，每个点可能映射到多个相机上	*(和3dgs好像，从3D点云投影映射到2D像素)*
-* 在所有映射到的相机位置，随机提取附近的图像特征
+* 在所有映射到的相机位置，在参考点附近学习若干采样偏移
 * 对每个相机vi，将采集到的所有图像特征，进行加权平均，作为（x, y, zi）在相机vi采集到的特征，记为f(x, y, zi, vi)
 * 由于相机的图正图像维度是D，总共有 *M* x *N* 个(x, y)栅格，故经过这种采样后，提取到的特征维度为 *M* x *N* x *D*
 * 将提取到的BEV特征，变换token实现多模态对齐，进行Cross-Attention
@@ -244,7 +244,7 @@ $E_{A}$： 动态物体编码器（FPN编码器）
 	$\hat{s}_{i}^{t} = (p_{i}^{t} - p_{i}^{t-1}, \theta_{i}^{t} - \theta_{i}^{t-1}, v_{i}^{t} - v_{i}^{t-1}, b_{i}^{t}, \mathbb{I}_{i}^{t})$
 
 $E_{O}$： 静态物体编码器（MLP编码器）
-1. 当前动态物体状态
+1. 当前静态物体状态
 
 	$o_{i} = (p_{i}, \theta_{i}, b_{i})$
 
@@ -260,7 +260,7 @@ $E_{P}$：地图元素编码器（PointNet编码器）
 	$(p_{i} - p_{0}, p_{i} - p_{i-1}, p_{i} - p_{i}^{left}, p_{i} - p_{i}^{right})$
 
 	* $p_{0}$：自车起始点
-	* $p_{i}^{right}$：最左边的点
+	* $p_{i}^{left}$：最左边的点
 
 $E_{AV}$: 自车状态编码器
 	
@@ -305,7 +305,7 @@ State dropout encoder，仅取消自车历史信息，模型还是会被自车�
 
 在训练数据集样本中，99%的数据样本是没有碰撞的，模型难以学习到碰撞的特征，数据集样本中的负样本是非常稀少的。
 
-因此，**PLUTO** 提出了ESDF（Euclidean Signed Distance Field），在ESDF描述了鸟瞰图下可行驶区域，每个点距离其最近不可行驶区域的欧式距离。
+因此，**PLUTO** 提出了训练损失ESDF（Euclidean Signed Distance Field），在ESDF描述了鸟瞰图下可行驶区域，每个点距离其最近不可行驶区域的欧式距离。
 
 4. 可行使区域辅助Loss
 	* $\mathcal{L}_{aux} = \frac{1}{T_{f}} \sum\limits_{i=1}^{T_f} \sum\limits_{i=1}^{N_c} \max(0, R_{c} + \epsilon - d_{i}^{t})$
@@ -562,7 +562,9 @@ Detect query：固定数量，但只负责检测新出现的目标。
 ![MOTR pipeline](./Img/End-to-End_Autonomous_Driving/MOTR_pipeline.png)
 
 > TrackFormer Decoder Cross-Attention Query:		track query & detect query 的当前状态   
-> TrackFormer Decoder Cross-Attention Key/Value:	当前时刻的 BEV feature 的空间特征（检测Head的目标类别、边界框、置信度、轨迹身份）
+> TrackFormer Decoder Cross-Attention Key/Value:	当前时刻的 BEV feature 的空间特征
+
+再经过Decoder解码后Detection head输出：目标类别、边界框、置信度、轨迹身份
 
 ![QIM](./Img/End-to-End_Autonomous_Driving/QIM.png)
 
@@ -572,8 +574,7 @@ Query Interaction Module
 * Track query高分值的预测作为存在目标，低分为消失的目标
 * 新目标+存在目标经过TAN（时序融合模块）的特征，concat后，作为下次的track query
 
-#### MapFormer 地图分割：Panoptic SegFormer
-Bev分割：BevFormer + Panoptic SegFormer（2D分割）
+#### MapFormer 地图分割：BEVFormer + Panoptic SegFormer（2D分割）
 > MapFormer Cross-Attention Query:	map query  
 > MapFormer Cross-Attention Key/Value:	BEV feature 的空间特征 (车道、道路元素预测 和 map-level features)
 
