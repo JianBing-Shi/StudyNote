@@ -99,3 +99,27 @@ pacman -S --needed base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake 
     ]
 }
 ```
+
+## 内存管理
+1. malloc
+    * 申请内存，但不初始化，里面的值是不确定的。
+    > int *p = malloc(10 * sizeof(int));
+2. calloc
+    * 申请内存，并把所有字节初始化为零。
+    > int *p = calloc(10, sizeof( *p ));
+3. realloc
+    * 调整已申请内存的大小。
+    > void *realloc(void *ptr, size_t new_size);
+4. free
+    * 释放动态申请的内存。只能释放由 `malloc`、`calloc` 或 `realloc` 得到的指针，不能释放普通数组
+    > free(p);
+
+* sizeof：计算类型或对象占用多少字节。
+    |数据类型|64 位 Windows|64 位 Linux/macOS|
+    | :-- | --: | --: |
+    | char | 1 byte | 1 byte |
+    | short | 2 byte | 2 byte |
+    | int | 4 byte | 4 byte |
+    | long | 4 byte | 8 byte |
+    | float | 4 byte | 4 byte |
+    | double | 8 byte | 8 byte |

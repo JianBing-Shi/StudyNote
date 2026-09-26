@@ -1,8 +1,18 @@
 # 强化学习 Reinforcement Learning
 ## 强化学习简介
-![ReinforcementLearning](./Img/DeepLearning/ReinforcementLearning.png)
+![ReinforcementLearning](./Img/ReinforcementLearning/ReinforcementLearning.png)
 
 强化学习中，以Agent智能体为强化学习的训练目标，由`环境`、`动作`、`状态`、`奖励`组成。
+
+## 强化学习 VS 模仿学习
+|  | 模仿学习 | 强化学习 |
+| ------- | ------- | ------- |
+| 训练真值 | 标签 | 环境 | 
+| 优化目标 | 最小化损失 | 最大化reward |
+| 优化策略 | 梯度下降 | 梯度上升 | 
+
+如果你能准确描述正确答案，推荐使用监督学习进行训练；  
+如果你不能准确描述正确答案，但直到正确答案有哪些特点，错误答案有哪些特点，推荐使用强化学习进行训练
 
 ## 探索 Exploration && 开采 Exploitation
 * 探索：未知领域，寻找可能带来更高回报的新路径
@@ -20,7 +30,7 @@
 
 * 马尔科夫链特性是 **每个动作只与上个状态有关，每个状态只与上个动作有关，与之前的历史无关**。
 
-![马尔科夫链](./Img/DeepLearning/MarkovChain.PNG)
+![马尔科夫链](./Img/ReinforcementLearning/MarkovChain.PNG)
 
   * $s_{k}$：环境在某一时刻的具体状态
   * $Env$：对环境的改变
@@ -136,6 +146,9 @@ $$
   * 更新policy和采集数据无法同时进行
 * Off policy 异步策略更新
   * 采集数据的policy和用数据更新的policy并不是同一套参数
+
+![policyRL](./Img/ReinforcementLearning/policyRL.png)
+
 $$
 \frac{1}{N}\sum\limits_{i=1}^{N} \sum\limits_{t=1}^{T_{i}}R(\tau^{i}) \log\pi_{\theta}(a_{i, t}|s_{i, t}) 
 $$
