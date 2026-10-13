@@ -73,6 +73,30 @@ VLA的优点
 * 有人工标注的地图信息（道路、车道线等）
 * 用AI对目标框进行了自动标注
 * 提供开环、闭环仿真工具
+
+##### setup
+```bash
+git clone https://github.com/motional/nuplan-devkit.git && cd nuplan-devkit
+pip install -e .
+pip install pip==24.0
+pip install -r requirements.txt
+pip install tensorboard
+pip install numpy==1.24.4
+```
+
+标准目录结构：
+
+```text
+dataset/
+├── maps/
+└── nuplan-v1.1/
+    └── splits/
+        ├── mini/
+        ├── train/
+        │   └── *.db
+        └── ...
+```
+
 #### NuImages：2D感知
 * 93k视频，折合150小时的驾驶
 * 93k带标注的图片和1100k无标注的图片
@@ -111,13 +135,6 @@ VLA的优点
 * S-Area：可行驶区域保持分数
 * S-PR：进度分数
 * S-Comfort：舒适度分数
-
-## PointNet
-PointNet是一个处理点云数据的神经网络架构，专门设计用于处理无序的点云数据。它通过对每个点进行独立的特征提取，并使用对称函数（如max pooling）来聚合这些特征，从而实现对整个点云的全局特征表示。PointNet在3D物体分类、分割和场景理解等任务中表现出色，成为点云处理领域的重要基石。
-
-点云数据是无序性的，只要位置不变，任意变换顺序，数据不改变；图像数据是有序性的，图像像素具有规则网格结构和空间邻接关系，图像的像素变换位置，图像信息就变了。
-
-PointNet的核心是MLP + Max Pooling，MLP用于编码信息，Max Pooling用于忽略顺序。
 
 ## BEV感知
 BEV：Bird-Eye-View，鸟瞰视角/俯视视角。当前主流自动驾驶感知、规控技术都应用在该视角下
@@ -401,7 +418,7 @@ Trajectory Generator
 
 * 轨迹离散化：
 	* 使用K-Dist，将相邻轨迹点之间的位置偏移、角度偏移聚类成固定数量
-	* 一条轨迹即可转化成一个起始位置 + 一个聚类ID序列的形式
+	* 一条轨迹即可转化成 *一个起始位置 + 一个聚类ID序列* 的形式
 * Next token prediction
 	* 效仿LLM，用一个类NLP的transformer网络，输入感知结果和历史轨迹，输出对下一个时刻的聚类ID的预测
 	* 以自回归预测方式反复推理直至规划完成
@@ -529,7 +546,7 @@ Planner的输出有两种形式
 * 其他车辆的sensor输入无法得知，因此设计了具备视角不变性的特征表征
 * 发现这样不仅丰富训练数据，也让模型更好判断它车移动意图，减少碰撞
 
-## 基于感知的端到端模型
+## 基于感知的一段式端到端模型
 对感知模型做改动、缝合
 
 代表工作：UniAD、VAD系列、Para-Drive
@@ -742,7 +759,7 @@ Occupancy-Language-Action，存在两个问题：
 * UniAD、VAD没有考虑轨迹多模
 * VADv2考虑了，但把动作做了离散化，会有out of vocabulary问题，动作不够精细，车辆可执行的运动被限定，可选择数量很少
 * Diffusion模型再机器人领域已经取得成功，可通过迭代去噪的方式，采样多模决策
-* 作者想尝试再智驾领域上也是用diffusion模型
+* 作者想尝试在智驾领域上也是用diffusion模型
 * 先尝试了transfuser，把最后的MLP换成diffusion模型，规划轨迹
 
 问题：训练太慢，去噪总共要做20轮；去噪后不同的Gaussian噪声得到的轨迹高度重叠

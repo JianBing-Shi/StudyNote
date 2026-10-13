@@ -15,6 +15,7 @@
 * [自然语言处理](./NLP.md)
 * [端到端自动驾驶](./End-to-End_Autonomous_Driving.md)
 * [FPGA学习笔记](./FPGA.md)
+* [边缘计算](./EgdeComputing.md)
 
 ## Markdown语法
 * 标题：`# 一级标题`、`## 二级标题`、`### 三级标题`，依次类推

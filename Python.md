@@ -91,29 +91,6 @@ nn.Sequential是序列容器，用于搭建神经网络的模块按照顺序添�
 * nn.ModuleList: 按python的list一样包装多个网络层，可以动态地存储和访问子模块
 * nn.ModuleDict: 按python的dict一样包装多个网络层，可以动态地存储和访问子模块
 
-### 损失函数（Loss Functions）
-#### 分类损失函数
-#### 回归损失函数
-* L1范数损失 **l1_loss**
-* **huber_loss**
-* 平滑版L1损失 **smooth_l1_loss**
-* 均方误差损失 **mse_loss**
-* **margin_ranking_loss**
-* 铰链嵌入损失 **hinge_embedding_loss**
-* 多分类间隔损失 **multilabel_margin_loss**
-* **soft_margin_loss**
-* **multilabel_soft_margin_loss**
-* **cosine_embedding_loss**
-* **multi_margin_loss**
-* 交叉熵损失 **cross_entropy** :当训练有 C 个类别的分类问题时很有效. 可选参数 weight 必须是一个1维 Tensor, 权重将被分配给各个类别. 对于不平衡的训练集非常有效。
-* 二分类交叉熵损失 **binary_cross_entropy** :二分类任务时的交叉熵计算函数。用于测量重构的误差, 例如自动编码机. 注意目标的值 t[i] 的范围为0到1之间.
-* 带有 Logits 的二元交叉熵 **binary_cross_entropy_with_logits** :BCEWithLogitsLoss损失函数把 Sigmoid 层集成到了 BCELoss 类中. 该版比用一个简单的 Sigmoid 层和 BCELoss 在数值上更稳定, 因为把这两个操作合并为一个层之后, 可以利用 log-sum-exp 的 技巧来实现数值稳定.
-* 散度损失 **kl_div** :KL 散度可用于衡量不同的连续分布之间的距离, 在连续的输出分布的空间上(离散采样)上进行直接回归时 很有效。
-* 连接时序分类损失 **ctc_loss** :可以对没有对齐的数据进行自动对齐，主要用在没有事先对齐的序列化数据训练上。比如语音识别、ocr识别等。
-* 负对数似然损失 **nll_loss** :用于训练 C 个类别的分类问题。
-* 目标值为泊松分布的负对数似然损失 **poisson_nll_loss**
-* 目标值为高斯分布的负对数似然损失 **gaussian_nll_loss**
-
 ### 实用函数接口 nn.functional
 nn.functional（通常简写为 F），包含了许多可以直接作用于张量上的函数，它们实现了与层对象相同的功能，但不具有参数保存和更新的能力。例如，可以使用 F.relu() 直接进行 ReLU 操作，或者 F.conv2d() 进行卷积操作。
 
@@ -159,8 +136,8 @@ Pytorch Lightning 是一个基于PyTorch的高级深度学习框架，旨在将�
 		* overfit_batches：过拟合少量batch（测试代码）
 		* precision：精度
 	* 回调日志
+		* callbacks：回调列表（`ModelCheckpoint`(保存模型权重), `EarlyStopping`(早停机制),`LearningRateMonitor`(学习策略)）
 		* logger：日志器（`TersonBoardLogger`, `WandbLogger`, `CometLogger`, `MLFlowLogger`, `NeptuneLogger`）
-		* callbacks：回调列表（`ModelCheckpoint`(保存模型权重), `EarlyStopping`(早停机制)）
 		* log_every_n_steps：每N步记录一次日志（默认 50）
 4. 额外功能
 	* 开始训练 trainer.fit(model=`model`, train_dataloaders=`train_dataloader`, val_dataloaders=`val_dataloader`)
