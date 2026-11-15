@@ -14,6 +14,7 @@
 * [注意力机制](./Attention.md)
 * [自然语言处理](./NLP.md)
 * [端到端自动驾驶](./End-to-End_Autonomous_Driving.md)
+* [世界模型](./WorldModel.md)
 * [FPGA学习笔记](./FPGA.md)
 * [边缘计算](./EgdeComputing.md)
 
